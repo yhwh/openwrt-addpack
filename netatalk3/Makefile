@@ -63,8 +63,7 @@ CONFIGURE_ARGS += \
 	--with-uams-path="/usr/lib/uams" \
 	--disable-admin-group \
 	--disable-srvloc \
-	--without-kerberos \
-	--without-shadow \
+	--without-pam \
 	--without-ldap
 
 ifdef CONFIG_PACKAGE_avahi-daemon
