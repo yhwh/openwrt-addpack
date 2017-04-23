@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=netatalk3
-PKG_VERSION:=3.0.1
+PKG_VERSION:=3.1.11
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/netatalk-$(PKG_VERSION)
 PKG_SOURCE:=netatalk-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=@SF/netatalk
-PKG_MD5SUM:=b4f5c932b2ca99f5292bd6b6d69b3ebc
+PKG_MD5SUM:=8f79ce2a275b128ebb07188766f088fc
 
 PKG_BUILD_PARALLEL:=1
 PKG_FIXUP:=autoreconf
@@ -63,6 +63,7 @@ CONFIGURE_ARGS += \
 	--with-uams-path="/usr/lib/uams" \
 	--disable-admin-group \
 	--disable-srvloc \
+	--without-kerberos \
 	--without-shadow \
 	--without-ldap
 
