@@ -91,8 +91,8 @@ define Package/netatalk3/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/etc/cnid_dbd/.libs/cnid_metad $(1)/usr/sbin/
 	$(CP) $(PKG_BUILD_DIR)/libatalk/.libs/libatalk.so* $(1)/usr/lib/
 	$(CP) $(PKG_BUILD_DIR)/etc/uams/.libs/*.so $(1)/usr/lib/uams/
-	ln -sf uams_dhx_pam.so  $(1)/usr/lib/uams/uams_dhx.so
-	ln -sf uams_dhx2_pam.so $(1)/usr/lib/uams/uams_dhx2.so
+	ln -sf uams_dhx_passwd.so  $(1)/usr/lib/uams/uams_dhx.so
+	ln -sf uams_dhx2_passwd.so $(1)/usr/lib/uams/uams_dhx2.so
 	$(INSTALL_CONF) ./files/afp.conf $(1)/etc/netatalk/
 	$(INSTALL_BIN) ./files/afpd.init $(1)/etc/init.d/afpd
 endef
