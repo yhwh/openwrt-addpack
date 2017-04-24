@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=samba4
-PKG_VERSION:=4.0.25
+PKG_VERSION:=4.6.2
 PKG_RELEASE:=1
 
 PKG_SOURCE_URL:=http://ftp.samba.org/pub/samba \
 	http://ftp.samba.org/pub/samba/old-versions
 PKG_SOURCE:=samba-$(PKG_VERSION).tar.gz
 PKG_BUILD_DIR:=$(BUILD_DIR)/samba-$(PKG_VERSION)
-PKG_MD5SUM:=
+PKG_MD5SUM:=461def8190ffc651fd8458b24ca2a622
 
 PKG_LICENSE:=GPLv3
 PKG_LICENSE_FILES:=COPYING
