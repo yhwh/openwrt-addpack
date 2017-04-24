@@ -1,8 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=krb5-mit-client-libs
-PKG_VERSION_MAJOR=1.12
-PKG_VERSION_MINOR=.1
+PKG_VERSION_MAJOR=1.7
+PKG_VERSION_MINOR=
 PKG_VERSION:=$(PKG_VERSION_MAJOR)$(PKG_VERSION_MINOR)
 PKG_RELEASE:=1
 
@@ -57,7 +57,6 @@ CONFIGURE_ARGS += \
 	--enable-thread-support \
 	--enable-dns-for-realm \
 	--disable-pkinit \
-	--with-system-et \
 	--without-tcl \
 	--without-libedit \
 	--without-ldap \
