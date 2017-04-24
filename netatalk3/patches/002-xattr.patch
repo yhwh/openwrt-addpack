@@ -1,0 +1,127 @@
+From 1d9cd8fb806aeaf2f3109e490f7481c4f1908e45 Mon Sep 17 00:00:00 2001
+From: Ralph Boehme <slow@samba.org>
+Date: Wed, 5 Oct 2016 11:25:51 +0200
+Subject: [PATCH 1/2] libatalk/vfs: use helper variable
+
+Instead of changing maxreply use a helper variable, no change in
+behaviour.
+
+Signed-off-by: Ralph Boehme <slow@samba.org>
+---
+ libatalk/vfs/ea_sys.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/libatalk/vfs/ea_sys.c b/libatalk/vfs/ea_sys.c
+index 52e3b84..1ce16e1 100644
+--- a/libatalk/vfs/ea_sys.c
++++ b/libatalk/vfs/ea_sys.c
+@@ -158,6 +158,7 @@ int sys_get_eacontent(VFS_FUNC_ARGS_EA_GETCONTENT)
+ {
+     ssize_t   ret;
+     uint32_t  attrsize;
++    size_t    extra = 0;
+ 
+ #ifdef SOLARIS
+     /* Protect special attributes set by NFS server */
+@@ -178,7 +179,7 @@ int sys_get_eacontent(VFS_FUNC_ARGS_EA_GETCONTENT)
+ 
+     LOG(log_debug7, logtype_afpd, "sys_getextattr_content(%s): attribute: \"%s\", size: %u", uname, attruname, maxreply);
+     if (vol->v_flags & AFPVOL_EA_SAMBA) {
+-        maxreply++;
++        extra = 1;
+     }
+ 
+     /* PBaranski fix */
+@@ -187,10 +188,10 @@ int sys_get_eacontent(VFS_FUNC_ARGS_EA_GETCONTENT)
+ 	ret = sys_fgetxattr(fd, attruname, rbuf +4, maxreply);
+     } else {
+ 	if ((oflag & O_NOFOLLOW) ) {
+-    	    ret = sys_lgetxattr(uname, attruname, rbuf +4, maxreply);
++    	    ret = sys_lgetxattr(uname, attruname, rbuf +4, maxreply + extra);
+ 	}
+ 	else {
+-    	    ret = sys_getxattr(uname, attruname,  rbuf +4, maxreply);
++    	    ret = sys_getxattr(uname, attruname,  rbuf +4, maxreply + extra);
+ 	}
+     }
+     /* PBaranski fix */
+-- 
+2.7.4
+
+
+From c74099e32fe73d8d00f4a7da1c9032c81b6c1c8a Mon Sep 17 00:00:00 2001
+From: Ralph Boehme <slow@samba.org>
+Date: Wed, 5 Oct 2016 11:37:12 +0200
+Subject: [PATCH 2/2] libatalk/vfs: fix handling of short req_count when
+ fetching xattr
+
+Bug: ...
+
+Signed-off-by: Ralph Boehme <slow@samba.org>
+---
+ include/atalk/ea.h    |  8 ++++----
+ libatalk/vfs/ea_sys.c | 16 ++++++++++++++++
+ 2 files changed, 20 insertions(+), 4 deletions(-)
+
+diff --git a/include/atalk/ea.h b/include/atalk/ea.h
+index 73a1606..f5f6942 100644
+--- a/include/atalk/ea.h
++++ b/include/atalk/ea.h
+@@ -58,10 +58,10 @@
+ #define MAX_EA_SIZE 3802
+ 
+ /*
+- * At time of writing the 10.5.6 client adds 8 bytes to the
+- * length of the EA that we send him 
+-*/
+-#define MAX_REPLY_EXTRA_BYTES 8
++ * req_count has space for AFP response bitmap and length as well, so
++ * 6 bytes
++ */
++#define MAX_REPLY_EXTRA_BYTES 6
+ 
+ /* 
+  * Library user must provide a static buffer of size ATTRNAMEBUFSIZ.
+diff --git a/libatalk/vfs/ea_sys.c b/libatalk/vfs/ea_sys.c
+index 1ce16e1..c999438 100644
+--- a/libatalk/vfs/ea_sys.c
++++ b/libatalk/vfs/ea_sys.c
+@@ -172,6 +172,12 @@ int sys_get_eacontent(VFS_FUNC_ARGS_EA_GETCONTENT)
+ 
+     /* Start building reply packet */
+ 
++    if (maxreply < MAX_REPLY_EXTRA_BYTES + 1) {
++        memset(rbuf, 0, 4);
++        *rbuflen += 4;
++        return AFPERR_PARAM;
++    }
++
+     maxreply -= MAX_REPLY_EXTRA_BYTES;
+ 
+     if (maxreply > MAX_EA_SIZE)
+@@ -210,12 +216,22 @@ int sys_get_eacontent(VFS_FUNC_ARGS_EA_GETCONTENT)
+                 return AFPERR_NOITEM;
+             return AFPERR_MISC;
+ 
++        case ERANGE:
++            return AFPERR_PARAM;
++
+         default:
+             LOG(log_debug, logtype_afpd, "sys_getextattr_content(%s): error: %s", attruname, strerror(errno));
+             return AFPERR_MISC;
+         }
+     }
+ 
++    if (ret > maxreply) {
++        /* Safety check */
++        memset(rbuf, 0, 4);
++        *rbuflen += 4;
++        return AFPERR_MISC;
++    }
++
+     if (vol->v_flags & AFPVOL_EA_SAMBA) {
+         /* What can we do about xattrs that are 1 byte large? */
+         if (ret < 2) {
+-- 
+2.7.4
+
